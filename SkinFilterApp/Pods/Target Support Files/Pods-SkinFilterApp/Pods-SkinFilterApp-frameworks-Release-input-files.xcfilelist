@@ -1,0 +1,3 @@
+${PODS_ROOT}/Target Support Files/Pods-SkinFilterApp/Pods-SkinFilterApp-frameworks.sh
+${BUILT_PRODUCTS_DIR}/MetalPetal/MetalPetal.framework
+${BUILT_PRODUCTS_DIR}/MetalPetalSurfaceBlur/MetalPetalSurfaceBlur.framework
