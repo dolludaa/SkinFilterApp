@@ -1,31 +1,20 @@
 PODS:
-  - MetalPetal (1.25.2):
-    - MetalPetal/Core (= 1.25.2)
-  - MetalPetal/Core (1.25.2)
-  - MetalPetalSurfaceBlur (0.1.0):
-    - MetalPetal
+  - Vivid (0.9)
+  - YUCIHighPassSkinSmoothing (1.4):
+    - Vivid
 
 DEPENDENCIES:
-  - MetalPetal
-  - MetalPetalSurfaceBlur (from `https://github.com/MetalPetal/SurfaceBlur.git`)
+  - YUCIHighPassSkinSmoothing
 
 SPEC REPOS:
   trunk:
-    - MetalPetal
-
-EXTERNAL SOURCES:
-  MetalPetalSurfaceBlur:
-    :git: https://github.com/MetalPetal/SurfaceBlur.git
-
-CHECKOUT OPTIONS:
-  MetalPetalSurfaceBlur:
-    :commit: 744f8cbd7e2dbca07559c9c585479b611be88d5b
-    :git: https://github.com/MetalPetal/SurfaceBlur.git
+    - Vivid
+    - YUCIHighPassSkinSmoothing
 
 SPEC CHECKSUMS:
-  MetalPetal: 001513fa0b0f6d4f147aa2651d40c594f2eacb01
-  MetalPetalSurfaceBlur: 31c65676aec9a21cd050d2e734511b6e6dccce9e
+  Vivid: 0fde7409beac71224deb151dd78f98a5bb860497
+  YUCIHighPassSkinSmoothing: 8418fd1bf605ec22b647c57745b863b352f72097
 
-PODFILE CHECKSUM: 61524fef9a151f4e07abc931b7fa97f328ed92b6
+PODFILE CHECKSUM: 4a9a7284f47ed8938852c6be5f74f9681bdf13ff
 
 COCOAPODS: 1.11.3

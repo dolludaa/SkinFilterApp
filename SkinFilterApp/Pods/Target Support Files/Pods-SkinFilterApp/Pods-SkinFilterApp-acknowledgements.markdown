@@ -1,11 +1,11 @@
 # Acknowledgements
 This application makes use of the following third party libraries:
 
-## MetalPetal
+## Vivid
 
-MIT License
+The MIT License (MIT)
 
-Copyright (c) 2017 Yu Ao
+Copyright (c) 2016 Yu Ao
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +26,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-## MetalPetalSurfaceBlur
+## YUCIHighPassSkinSmoothing
 
-MIT License
+The MIT License (MIT)
 
-Copyright (c) 2019 MetalPetal
+YUCIHighPassSkinSmoothing
+
+Copyright (c) 2016 Yu Ao https://yuao.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

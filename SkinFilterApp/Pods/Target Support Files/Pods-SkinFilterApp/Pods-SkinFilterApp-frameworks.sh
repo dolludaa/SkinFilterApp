@@ -176,12 +176,12 @@ code_sign_if_enabled() {
 }
 
 if [[ "$CONFIGURATION" == "Debug" ]]; then
-  install_framework "${BUILT_PRODUCTS_DIR}/MetalPetal/MetalPetal.framework"
-  install_framework "${BUILT_PRODUCTS_DIR}/MetalPetalSurfaceBlur/MetalPetalSurfaceBlur.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/Vivid/Vivid.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/YUCIHighPassSkinSmoothing/YUCIHighPassSkinSmoothing.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
-  install_framework "${BUILT_PRODUCTS_DIR}/MetalPetal/MetalPetal.framework"
-  install_framework "${BUILT_PRODUCTS_DIR}/MetalPetalSurfaceBlur/MetalPetalSurfaceBlur.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/Vivid/Vivid.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/YUCIHighPassSkinSmoothing/YUCIHighPassSkinSmoothing.framework"
 fi
 if [ "${COCOAPODS_PARALLEL_CODE_SIGN}" == "true" ]; then
   wait

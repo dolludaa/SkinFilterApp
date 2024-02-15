@@ -14,9 +14,9 @@
 		</dict>
 		<dict>
 			<key>FooterText</key>
-			<string>MIT License
+			<string>The MIT License (MIT)
 
-Copyright (c) 2017 Yu Ao
+Copyright (c) 2016 Yu Ao
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,15 +39,17 @@ SOFTWARE.
 			<key>License</key>
 			<string>MIT</string>
 			<key>Title</key>
-			<string>MetalPetal</string>
+			<string>Vivid</string>
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 		</dict>
 		<dict>
 			<key>FooterText</key>
-			<string>MIT License
+			<string>The MIT License (MIT)
 
-Copyright (c) 2019 MetalPetal
+YUCIHighPassSkinSmoothing
+
+Copyright (c) 2016 Yu Ao https://yuao.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -70,7 +72,7 @@ SOFTWARE.
 			<key>License</key>
 			<string>MIT</string>
 			<key>Title</key>
-			<string>MetalPetalSurfaceBlur</string>
+			<string>YUCIHighPassSkinSmoothing</string>
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 		</dict>

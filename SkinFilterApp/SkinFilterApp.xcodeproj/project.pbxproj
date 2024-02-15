@@ -9,25 +9,26 @@
 /* Begin PBXBuildFile section */
 		440808F72B7C3921008458DF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440808F62B7C3921008458DF /* AppDelegate.swift */; };
 		440808F92B7C3921008458DF /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440808F82B7C3921008458DF /* SceneDelegate.swift */; };
-		440808FB2B7C3921008458DF /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440808FA2B7C3921008458DF /* ViewController.swift */; };
+		440808FB2B7C3921008458DF /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440808FA2B7C3921008458DF /* MainViewController.swift */; };
 		440808FE2B7C3921008458DF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 440808FC2B7C3921008458DF /* Main.storyboard */; };
 		440809002B7C3923008458DF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 440808FF2B7C3923008458DF /* Assets.xcassets */; };
 		440809032B7C3923008458DF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 440809012B7C3923008458DF /* LaunchScreen.storyboard */; };
-		FD517D22F311246928400334 /* Pods_SkinFilterApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05929A93985E7F3DD3CC5693 /* Pods_SkinFilterApp.framework */; };
+		4408090C2B7C4C62008458DF /* MetalPetal in Frameworks */ = {isa = PBXBuildFile; productRef = 4408090B2B7C4C62008458DF /* MetalPetal */; };
+		75475C6675E2B3B1717A3344 /* Pods_SkinFilterApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 61ABA4DE50248775072D9268 /* Pods_SkinFilterApp.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		05929A93985E7F3DD3CC5693 /* Pods_SkinFilterApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SkinFilterApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		440808F32B7C3921008458DF /* SkinFilterApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SkinFilterApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		440808F62B7C3921008458DF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		440808F82B7C3921008458DF /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		440808FA2B7C3921008458DF /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		440808FA2B7C3921008458DF /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		440808FD2B7C3921008458DF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		440808FF2B7C3923008458DF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		440809022B7C3923008458DF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		440809042B7C3923008458DF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		8051963C2298F48FA99E8516 /* Pods-SkinFilterApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SkinFilterApp.release.xcconfig"; path = "Target Support Files/Pods-SkinFilterApp/Pods-SkinFilterApp.release.xcconfig"; sourceTree = "<group>"; };
-		DF9758A0EA14D5942E2CC7E5 /* Pods-SkinFilterApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SkinFilterApp.debug.xcconfig"; path = "Target Support Files/Pods-SkinFilterApp/Pods-SkinFilterApp.debug.xcconfig"; sourceTree = "<group>"; };
+		45D272C0F395680E2CEEF7A2 /* Pods-SkinFilterApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SkinFilterApp.debug.xcconfig"; path = "Target Support Files/Pods-SkinFilterApp/Pods-SkinFilterApp.debug.xcconfig"; sourceTree = "<group>"; };
+		61ABA4DE50248775072D9268 /* Pods_SkinFilterApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SkinFilterApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1F90E62077A88DD820EEC9A /* Pods-SkinFilterApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SkinFilterApp.release.xcconfig"; path = "Target Support Files/Pods-SkinFilterApp/Pods-SkinFilterApp.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,29 +36,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FD517D22F311246928400334 /* Pods_SkinFilterApp.framework in Frameworks */,
+				4408090C2B7C4C62008458DF /* MetalPetal in Frameworks */,
+				75475C6675E2B3B1717A3344 /* Pods_SkinFilterApp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		3F8993BE91D54FF4142B86C4 /* Pods */ = {
+		32DA48BA069C372DBDF9831E /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				DF9758A0EA14D5942E2CC7E5 /* Pods-SkinFilterApp.debug.xcconfig */,
-				8051963C2298F48FA99E8516 /* Pods-SkinFilterApp.release.xcconfig */,
+				45D272C0F395680E2CEEF7A2 /* Pods-SkinFilterApp.debug.xcconfig */,
+				B1F90E62077A88DD820EEC9A /* Pods-SkinFilterApp.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
-			sourceTree = "<group>";
-		};
-		3FB2C8B3AC6A7B5E5181C45B /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				05929A93985E7F3DD3CC5693 /* Pods_SkinFilterApp.framework */,
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		440808EA2B7C3921008458DF = {
@@ -65,8 +58,8 @@
 			children = (
 				440808F52B7C3921008458DF /* SkinFilterApp */,
 				440808F42B7C3921008458DF /* Products */,
-				3F8993BE91D54FF4142B86C4 /* Pods */,
-				3FB2C8B3AC6A7B5E5181C45B /* Frameworks */,
+				32DA48BA069C372DBDF9831E /* Pods */,
+				C4882880B3F158E4B6CAF50D /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -83,13 +76,21 @@
 			children = (
 				440808F62B7C3921008458DF /* AppDelegate.swift */,
 				440808F82B7C3921008458DF /* SceneDelegate.swift */,
-				440808FA2B7C3921008458DF /* ViewController.swift */,
+				440808FA2B7C3921008458DF /* MainViewController.swift */,
 				440808FC2B7C3921008458DF /* Main.storyboard */,
 				440808FF2B7C3923008458DF /* Assets.xcassets */,
 				440809012B7C3923008458DF /* LaunchScreen.storyboard */,
 				440809042B7C3923008458DF /* Info.plist */,
 			);
 			path = SkinFilterApp;
+			sourceTree = "<group>";
+		};
+		C4882880B3F158E4B6CAF50D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				61ABA4DE50248775072D9268 /* Pods_SkinFilterApp.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -99,17 +100,20 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 440809072B7C3923008458DF /* Build configuration list for PBXNativeTarget "SkinFilterApp" */;
 			buildPhases = (
-				BC931F7EA2F6BA5618B30F3F /* [CP] Check Pods Manifest.lock */,
+				A80A36525D42ED0008A886E6 /* [CP] Check Pods Manifest.lock */,
 				440808EF2B7C3921008458DF /* Sources */,
 				440808F02B7C3921008458DF /* Frameworks */,
 				440808F12B7C3921008458DF /* Resources */,
-				2B07E64B4605E091FF8CB3CA /* [CP] Embed Pods Frameworks */,
+				A3FD39D8DC1E3F7E6A7D07B9 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = SkinFilterApp;
+			packageProductDependencies = (
+				4408090B2B7C4C62008458DF /* MetalPetal */,
+			);
 			productName = SkinFilterApp;
 			productReference = 440808F32B7C3921008458DF /* SkinFilterApp.app */;
 			productType = "com.apple.product-type.application";
@@ -138,6 +142,9 @@
 				Base,
 			);
 			mainGroup = 440808EA2B7C3921008458DF;
+			packageReferences = (
+				4408090A2B7C4C62008458DF /* XCRemoteSwiftPackageReference "MetalPetal" */,
+			);
 			productRefGroup = 440808F42B7C3921008458DF /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -161,7 +168,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		2B07E64B4605E091FF8CB3CA /* [CP] Embed Pods Frameworks */ = {
+		A3FD39D8DC1E3F7E6A7D07B9 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -178,7 +185,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SkinFilterApp/Pods-SkinFilterApp-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		BC931F7EA2F6BA5618B30F3F /* [CP] Check Pods Manifest.lock */ = {
+		A80A36525D42ED0008A886E6 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -207,7 +214,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				440808FB2B7C3921008458DF /* ViewController.swift in Sources */,
+				440808FB2B7C3921008458DF /* MainViewController.swift in Sources */,
 				440808F72B7C3921008458DF /* AppDelegate.swift in Sources */,
 				440808F92B7C3921008458DF /* SceneDelegate.swift in Sources */,
 			);
@@ -272,7 +279,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -287,7 +294,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				INFOPLIST_KEY_MetalCaptureEnabled = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -335,7 +343,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -344,7 +352,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				INFOPLIST_KEY_MetalCaptureEnabled = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -356,12 +365,13 @@
 		};
 		440809082B7C3923008458DF /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DF9758A0EA14D5942E2CC7E5 /* Pods-SkinFilterApp.debug.xcconfig */;
+			baseConfigurationReference = 45D272C0F395680E2CEEF7A2 /* Pods-SkinFilterApp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8PTPJAPGUH;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SkinFilterApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -369,6 +379,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -384,12 +395,13 @@
 		};
 		440809092B7C3923008458DF /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8051963C2298F48FA99E8516 /* Pods-SkinFilterApp.release.xcconfig */;
+			baseConfigurationReference = B1F90E62077A88DD820EEC9A /* Pods-SkinFilterApp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8PTPJAPGUH;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SkinFilterApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -397,6 +409,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -432,6 +445,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4408090A2B7C4C62008458DF /* XCRemoteSwiftPackageReference "MetalPetal" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/MetalPetal/MetalPetal.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.25.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4408090B2B7C4C62008458DF /* MetalPetal */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4408090A2B7C4C62008458DF /* XCRemoteSwiftPackageReference "MetalPetal" */;
+			productName = MetalPetal;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 440808EB2B7C3921008458DF /* Project object */;
 }

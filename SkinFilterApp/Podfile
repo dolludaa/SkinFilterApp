@@ -6,8 +6,6 @@ target 'SkinFilterApp' do
   use_frameworks!
 
   # Pods for SkinFilterApp
-pod 'MetalPetal'
-pod 'MetalPetalSurfaceBlur', :git => 'https://github.com/MetalPetal/SurfaceBlur.git'
-
+  pod 'YUCIHighPassSkinSmoothing'
 
 end
