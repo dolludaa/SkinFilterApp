@@ -26,6 +26,14 @@ class ViewController: UIViewController {
     var videoDeviceInput: AVCaptureDeviceInput!
     
     private let imageView = UIImageView()
+    private let sliderInput = UISlider()
+    private let sliderRadius = UISlider()
+    
+    private var sliderInputValue: NSNumber = 0
+    private var sliderRadiusValue: NSNumber = 0
+    
+    private let filter = YUCIHighPassSkinSmoothing()
+    private let context = CIContext(options: [CIContextOption.workingColorSpace: CGColorSpaceCreateDeviceRGB()])
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,6 +58,37 @@ class ViewController: UIViewController {
             imageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.5),
             imageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.5)
         ])
+        
+        view.addSubview(sliderInput)
+        sliderInput.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            sliderInput.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            sliderInput.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            sliderInput.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+        ])
+        
+        view.addSubview(sliderRadius)
+        sliderRadius.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            sliderRadius.bottomAnchor.constraint(equalTo: sliderInput.topAnchor),
+            sliderRadius.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            sliderRadius.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+        ])
+        
+        
+        sliderInput.addTarget(self, action: #selector(inputDidChanged), for: .valueChanged)
+        sliderInput.addTarget(self, action: #selector(radiusDidChanged), for: .valueChanged)
+        
+    }
+    
+    @objc
+    private func inputDidChanged() {
+        sliderInputValue = sliderInput.value as NSNumber
+    }
+    
+    @objc
+    private func radiusDidChanged() {
+        sliderRadiusValue = sliderRadius.value * 800 as NSNumber
     }
 
     private func setupCaptureSession() {
@@ -89,14 +128,11 @@ class ViewController: UIViewController {
 
 //        view.bringSubviewToFront(cameraButton)
         view.bringSubviewToFront(imageView)
+        view.bringSubviewToFront(sliderInput)
+        view.bringSubviewToFront(sliderRadius)
     }
 
 }
-
-
-//#Preview {
-//    MainViewController()
-//}
 
 extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(
@@ -109,33 +145,47 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
-        
-        // Предполагаем, что `applySurfaceBlur` возвращает CIImage.
-        // В реальном примере, вы бы использовали MetalPetal для применения фильтра.
         if let filteredCIImage = applySurfaceBlur(to: ciImage) {
-            DispatchQueue.main.async {
-                self.updatePreviewLayer(with: filteredCIImage)
-            }
+//            DispatchQueue.main.async {
+//                self.updatePreviewLayer(with: filteredCIImage)
+//            }
         }
     }
 
     func applySurfaceBlur(to ciImage: CIImage) -> CIImage? {
+        processImage(to: ciImage)
         let filter = YUCIHighPassSkinSmoothing()
-        filter.inputRadius = 80
         filter.inputImage = ciImage
-        filter.inputAmount = 0
-        filter.inputSharpnessFactor = 0
+        filter.inputAmount = 0.9
+        filter.inputRadius = 7.0 * ciImage.extent.width / 750.0 as NSNumber
+        
         return filter.outputImage
+    }
+    
+    func processImage(to ciImage: CIImage) {
+        filter.inputImage = ciImage
+        filter.inputAmount = 0.9
+        filter.inputRadius = 7.0 * ciImage.extent.width/750.0 as NSNumber
+        let outputCIImage = filter.outputImage!
+        
+        let outputCGImage = context.createCGImage(outputCIImage, from: outputCIImage.extent)
+        
+        DispatchQueue.main.async { [self] in
+            let outputUIImage = UIImage(
+                cgImage: outputCGImage!,
+                scale: imageView.image?.scale ?? 1,
+                orientation: imageView.image?.imageOrientation ?? .leftMirrored
+            )
+            
+            imageView.image = outputUIImage
+        }
+        
     }
 
     func updatePreviewLayer(with ciImage: CIImage) {
         let context = CIContext(options: nil)
         guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return }
-        
-        // Определяем ориентацию изображения. Это значение должно соответствовать фактической ориентации исходного изображения.
-        // Вы можете получить это значение из AVCaptureConnection или другого источника, в зависимости от того, как вы получаете изображение.
-        // Здесь используется .right в качестве примера.
-        let uiImage = UIImage(cgImage: cgImage, scale: 1.0, orientation: .right)
+        let uiImage = UIImage(cgImage: cgImage, scale: UIScreen.main.scale, orientation: .left)
         DispatchQueue.main.async {
             self.imageView.image = uiImage
         }
