@@ -26,12 +26,6 @@ class ViewController: UIViewController {
     var videoDeviceInput: AVCaptureDeviceInput!
     
     private let imageView = UIImageView()
-    private let sliderInput = UISlider()
-    private let sliderRadius = UISlider()
-    
-    private var sliderInputValue: NSNumber = 0
-    private var sliderRadiusValue: NSNumber = 0
-    
     private let filter = YUCIHighPassSkinSmoothing()
     private let context = CIContext(options: [CIContextOption.workingColorSpace: CGColorSpaceCreateDeviceRGB()])
     
@@ -59,36 +53,6 @@ class ViewController: UIViewController {
             imageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.5)
         ])
         
-        view.addSubview(sliderInput)
-        sliderInput.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            sliderInput.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            sliderInput.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            sliderInput.leadingAnchor.constraint(equalTo: view.leadingAnchor)
-        ])
-        
-        view.addSubview(sliderRadius)
-        sliderRadius.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            sliderRadius.bottomAnchor.constraint(equalTo: sliderInput.topAnchor),
-            sliderRadius.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            sliderRadius.leadingAnchor.constraint(equalTo: view.leadingAnchor)
-        ])
-        
-        
-        sliderInput.addTarget(self, action: #selector(inputDidChanged), for: .valueChanged)
-        sliderInput.addTarget(self, action: #selector(radiusDidChanged), for: .valueChanged)
-        
-    }
-    
-    @objc
-    private func inputDidChanged() {
-        sliderInputValue = sliderInput.value as NSNumber
-    }
-    
-    @objc
-    private func radiusDidChanged() {
-        sliderRadiusValue = sliderRadius.value * 800 as NSNumber
     }
 
     private func setupCaptureSession() {
@@ -128,8 +92,6 @@ class ViewController: UIViewController {
 
 //        view.bringSubviewToFront(cameraButton)
         view.bringSubviewToFront(imageView)
-        view.bringSubviewToFront(sliderInput)
-        view.bringSubviewToFront(sliderRadius)
     }
 
 }
