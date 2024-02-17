@@ -36,24 +36,17 @@ class ViewController: UIViewController {
     }
 
     private func setupLayout() {
-        view.addSubview(cameraButton)
-        cameraButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            cameraButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            cameraButton.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
-        
-        view.addSubview(imageView)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-//        imageView.transform = imageView.transform.rotated(by: .pi / 2)
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: view.topAnchor),
-            imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            imageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.5),
-            imageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.5)
-        ])
-        
-    }
+           view.addSubview(cameraButton)
+           cameraButton.translatesAutoresizingMaskIntoConstraints = false
+           NSLayoutConstraint.activate([
+               cameraButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+               cameraButton.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+           ])
+           
+           view.addSubview(imageView)
+        imageView.frame = view.frame
+        imageView.contentMode = .scaleAspectFill
+       }
 
     private func setupCaptureSession() {
         captureSession.beginConfiguration()
