@@ -109,6 +109,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         currentPixelBuffer = pixelBuffer
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
@@ -119,40 +120,55 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
     }
     
+    
+    
     func processFaces(for observations: [VNFaceObservation], in ciImage: CIImage) -> CIImage? {
         var resultImage = ciImage
         
         for observation in observations {
             let faceBounds = VNImageRectForNormalizedRect(observation.boundingBox, Int(ciImage.extent.width), Int(ciImage.extent.height))
-            let faceCIImage = ciImage.cropped(to: faceBounds)
             
-            filter.inputImage = faceCIImage
-            filter.inputAmount = 0.9
-            filter.inputRadius = 7.0 * faceCIImage.extent.width / 750.0 as NSNumber
+            filter.inputImage = CIImage(cvPixelBuffer: currentPixelBuffer!)
+            filter.inputAmount = 1.0 // Или другое значение, которое вам подходит
+            filter.inputRadius = 7.0 * faceBounds.width / 750.0 as NSNumber // Радиус влияет на размер области сглаживания
             
             guard let outputFaceImage = filter.outputImage else { continue }
             
-            // Создаем овальную маску
-            let center = CIVector(x: faceBounds.midX, y: faceBounds.midY)
-            let radius = max(faceBounds.width, faceBounds.height) / 2
+            // Расширяем маску, чтобы она выходила за пределы границ лица и была овальной
+            let width = faceBounds.width
+            let height = faceBounds.height
+            let ovalWidth = width * 1.2 // Увеличиваем ширину овала
+            let ovalHeight = height * 1.4 // Увеличиваем высоту овала, чтобы маска покрыла весь лоб
+            
+            // Центр овала немного смещен вверх, чтобы охватить весь лоб
+            let centerY = faceBounds.midY + height * 0.1
+            let centerX = faceBounds.midX
+            let center = CIVector(x: centerX, y: centerY)
+            
             let radialGradient = CIFilter(name: "CIRadialGradient", parameters: [
-                "inputRadius0": radius * 0.9 as NSNumber,
-                "inputRadius1": radius as NSNumber,
+                "inputRadius0": min(ovalWidth, ovalHeight) / 2 as NSNumber, // Внутренний радиус овала
+                "inputRadius1": max(ovalWidth, ovalHeight) / 2 as NSNumber, // Внешний радиус овала
                 "inputColor0": CIColor(red: 1, green: 1, blue: 1, alpha: 1),
                 "inputColor1": CIColor(red: 1, green: 1, blue: 1, alpha: 0),
                 "inputCenter": center
-            ])!.outputImage!.cropped(to: faceBounds)
+            ])!.outputImage!
             
-            if let blendFilter = CIFilter(name: "CIBlendWithMask",
-                                           parameters: [kCIInputBackgroundImageKey: resultImage,
-                                                        kCIInputImageKey: outputFaceImage,
-                                                        kCIInputMaskImageKey: radialGradient]) {
-                resultImage = blendFilter.outputImage!
+            let blendFilter = CIFilter(name: "CIBlendWithAlphaMask", parameters: [
+                kCIInputBackgroundImageKey: resultImage,
+                kCIInputImageKey: outputFaceImage,
+                kCIInputMaskImageKey: radialGradient
+            ])!
+            
+            if let blendedImage = blendFilter.outputImage {
+                resultImage = blendedImage.cropped(to: ciImage.extent)
             }
         }
         
         return resultImage
     }
 
-
 }
+
+
+
+
