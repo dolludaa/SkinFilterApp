@@ -105,8 +105,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             self?.captureSession.startRunning()
         }
     }
-
-
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         
@@ -120,8 +118,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
     }
     
-    
-    
     func processFaces(for observations: [VNFaceObservation], in ciImage: CIImage) -> CIImage? {
         var resultImage = ciImage
         
@@ -129,25 +125,23 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             let faceBounds = VNImageRectForNormalizedRect(observation.boundingBox, Int(ciImage.extent.width), Int(ciImage.extent.height))
             
             filter.inputImage = CIImage(cvPixelBuffer: currentPixelBuffer!)
-            filter.inputAmount = 1.0 // Или другое значение, которое вам подходит
-            filter.inputRadius = 7.0 * faceBounds.width / 750.0 as NSNumber // Радиус влияет на размер области сглаживания
+            filter.inputAmount = 1.0
+            filter.inputRadius = 7.0 * faceBounds.width / 750.0 as NSNumber
             
             guard let outputFaceImage = filter.outputImage else { continue }
             
-            // Расширяем маску, чтобы она выходила за пределы границ лица и была овальной
             let width = faceBounds.width
             let height = faceBounds.height
-            let ovalWidth = width * 1.2 // Увеличиваем ширину овала
-            let ovalHeight = height * 1.4 // Увеличиваем высоту овала, чтобы маска покрыла весь лоб
+            let ovalWidth = width * 1.2
+            let ovalHeight = height * 1.4
             
-            // Центр овала немного смещен вверх, чтобы охватить весь лоб
             let centerY = faceBounds.midY + height * 0.1
             let centerX = faceBounds.midX
             let center = CIVector(x: centerX, y: centerY)
             
             let radialGradient = CIFilter(name: "CIRadialGradient", parameters: [
-                "inputRadius0": min(ovalWidth, ovalHeight) / 2 as NSNumber, // Внутренний радиус овала
-                "inputRadius1": max(ovalWidth, ovalHeight) / 2 as NSNumber, // Внешний радиус овала
+                "inputRadius0": min(ovalWidth, ovalHeight) / 2 as NSNumber,
+                "inputRadius1": max(ovalWidth, ovalHeight) / 2 as NSNumber,
                 "inputColor0": CIColor(red: 1, green: 1, blue: 1, alpha: 1),
                 "inputColor1": CIColor(red: 1, green: 1, blue: 1, alpha: 0),
                 "inputCenter": center
@@ -166,7 +160,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         return resultImage
     }
-
+    
 }
 
 
