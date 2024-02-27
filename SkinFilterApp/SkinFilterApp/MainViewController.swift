@@ -14,10 +14,11 @@ import Vision
 class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     private var cameraButton = UIButton()
-    var previewLayer: AVCaptureVideoPreviewLayer!
-    let captureSession = AVCaptureSession()
-    var videoOutput = AVCaptureVideoDataOutput()
-    var videoDeviceInput: AVCaptureDeviceInput!
+    private var previewLayer: AVCaptureVideoPreviewLayer!
+    private let captureSession = AVCaptureSession()
+    private var videoOutput = AVCaptureVideoDataOutput()
+    private var videoDeviceInput: AVCaptureDeviceInput!
+    private var isCameraOpen = false
     
     private let imageView = UIImageView()
     private let filter = YUCIHighPassSkinSmoothing()
@@ -38,6 +39,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         })
     }()
     
+    private let whiteView = UIView() // Добавляем белое вью
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupLayout()
@@ -46,17 +49,28 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     private func setupLayout() {
-        view.addSubview(cameraButton)
         view.addSubview(imageView)
+        view.addSubview(whiteView) // Добавляем белое вью
+        whiteView.backgroundColor = .white // Устанавливаем цвет белого вью
         
         cameraButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(cameraButton)
         
         NSLayoutConstraint.activate([
             cameraButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            cameraButton.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            cameraButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20) // Измените констрейнт, чтобы разместить кнопку там, где вам нужно
+        ])
+        
+        // Устанавливаем констрейнты для белого вью, чтобы оно занимало весь экран
+        whiteView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            whiteView.topAnchor.constraint(equalTo: view.topAnchor),
+            whiteView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            whiteView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            whiteView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
-    
+
     private func setUpStyle() {
         imageView.frame = view.bounds
         imageView.contentMode = .scaleAspectFill
@@ -65,8 +79,9 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         cameraButton.setTitleColor(.blue, for: .normal)
         cameraButton.layer.cornerRadius = 15
         cameraButton.setTitle("Open Camera", for: .normal)
-        cameraButton.addTarget(self, action: #selector(openCamera), for: .touchUpInside)
+        cameraButton.addTarget(self, action: #selector(toggleCamera), for: .touchUpInside)
     }
+
     
     private func setupCaptureSession() {
         captureSession.beginConfiguration()
@@ -88,24 +103,57 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         captureSession.commitConfiguration()
     }
     
-    @objc private func openCamera() {
-        previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        previewLayer.frame = view.bounds
-        previewLayer.videoGravity = .resizeAspectFill
-        view.layer.insertSublayer(previewLayer, at: 0)
-        previewLayer.connection?.videoOrientation = .portrait
-        
-        if let connection = videoOutput.connection(with: .video), connection.isVideoMirroringSupported {
-            connection.automaticallyAdjustsVideoMirroring = false
-            connection.isVideoMirrored = true
-            connection.videoOrientation = .portrait
-        }
-        
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.captureSession.startRunning()
+    @objc private func toggleCamera() {
+        if isCameraOpen {
+            // Закрываем камеру
+            closeCamera()
+            cameraButton.setTitle("Open Camera", for: .normal)
+            isCameraOpen = false
+            
+            // Показываем белое вью
+            whiteView.isHidden = false
+        } else {
+            // Открываем камеру, если она ещё не открыта
+            if previewLayer == nil {
+                previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+                previewLayer.frame = view.bounds
+                previewLayer.videoGravity = .resizeAspectFill
+                view.layer.insertSublayer(previewLayer, at: 0)
+                previewLayer.connection?.videoOrientation = .portrait
+                
+                if let connection = videoOutput.connection(with: .video), connection.isVideoMirroringSupported {
+                    connection.automaticallyAdjustsVideoMirroring = false
+                    connection.isVideoMirrored = true
+                    connection.videoOrientation = .portrait
+                }
+                
+                if !captureSession.isRunning {
+                    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                        self?.captureSession.startRunning()
+                    }
+                }
+            }
+            
+            // Перемещаем кнопку на передний план
+            view.bringSubviewToFront(cameraButton)
+            
+            cameraButton.setTitle("Close Camera", for: .normal)
+            isCameraOpen = true
+            
+            // Скрываем белое вью
+            whiteView.isHidden = true
         }
     }
-    
+
+    private func closeCamera() {
+        if captureSession.isRunning {
+            captureSession.stopRunning()
+        }
+
+        previewLayer?.removeFromSuperlayer()
+        previewLayer = nil
+    }
+
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
@@ -160,9 +208,4 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         return resultImage
     }
-    
 }
-
-
-
-
