@@ -20,6 +20,9 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     private var videoDeviceInput: AVCaptureDeviceInput!
     private var isCameraOpen = false
     
+    private var openCameraImage: UIImage?
+    private var closeCameraImage: UIImage?
+    
     private let imageView = UIImageView()
     private let filter = YUCIHighPassSkinSmoothing()
     private let context = CIContext(options: [CIContextOption.workingColorSpace: CGColorSpaceCreateDeviceRGB()])
@@ -75,10 +78,14 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         imageView.frame = view.bounds
         imageView.contentMode = .scaleAspectFill
         
+        openCameraImage = UIImage(named: "cameraOpen") // Замените на имя вашего изображения
+        closeCameraImage = UIImage(named: "cameraClose") // Замените на имя вашего изображения
+
+        
         cameraButton.titleLabel?.font = .systemFont(ofSize: 16)
         cameraButton.setTitleColor(.blue, for: .normal)
         cameraButton.layer.cornerRadius = 15
-        cameraButton.setTitle("Open Camera", for: .normal)
+        cameraButton.setBackgroundImage(openCameraImage, for: .normal)
         cameraButton.addTarget(self, action: #selector(toggleCamera), for: .touchUpInside)
     }
 
@@ -107,8 +114,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         if isCameraOpen {
             // Закрываем камеру
             closeCamera()
-            cameraButton.setTitle("Open Camera", for: .normal)
-            isCameraOpen = false
+                   cameraButton.setBackgroundImage(openCameraImage, for: .normal)
+                   isCameraOpen = false
             
             // Показываем белое вью
             whiteView.isHidden = false
@@ -136,8 +143,9 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             
             // Перемещаем кнопку на передний план
             view.bringSubviewToFront(cameraButton)
-            
-            cameraButton.setTitle("Close Camera", for: .normal)
+        
+            cameraButton.setBackgroundImage(closeCameraImage, for: .normal) // Устанавливаем изображение для закрытой камеры
+
             isCameraOpen = true
             
             // Скрываем белое вью
