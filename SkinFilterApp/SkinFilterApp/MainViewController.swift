@@ -54,10 +54,9 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     private func setupLayout() {
-        // Ensure imageView is initialized before this point
 
         view.addSubview(imageView)
-        imageView.frame = view.bounds // Or any other frame setup
+        imageView.frame = view.bounds
         imageView.contentMode = .scaleAspectFill
 
         view.addSubview(whiteView)
@@ -73,15 +72,15 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         view.addSubview(cameraButton)
            cameraButton.translatesAutoresizingMaskIntoConstraints = false
            NSLayoutConstraint.activate([
-               cameraButton.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -12.5), // Смещение влево от центра на половину расстояния между кнопками
+               cameraButton.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -12.5),
                cameraButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
            ])
            
            view.addSubview(filterButton)
            filterButton.translatesAutoresizingMaskIntoConstraints = false
-           filterButton.isHidden = true // Если кнопка должна быть видимой сразу
+           filterButton.isHidden = true
            NSLayoutConstraint.activate([
-               filterButton.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 12.5), // Смещение вправо от центра на половину расстояния между кнопками
+               filterButton.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 12.5),
                filterButton.bottomAnchor.constraint(equalTo: cameraButton.bottomAnchor)
            ])
     }
@@ -129,17 +128,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     @objc private func toggleFilter() {
-        isFilterApplied.toggle() // Переключаем состояние применения фильтра
+        isFilterApplied.toggle()
 
 
       
       
             filterButton.setBackgroundImage(UIImage(named: "filterImage"), for: .normal)
-
-
-        // Обновляем изображение с применением или без применения фильтра
-        // Это условное выполнение требуется, если вы хотите немедленно обновить видимое изображение.
-        // Вам может потребоваться вызвать обновление или перерисовку текущего изображения с фильтром или без него.
         guard let pixelBuffer = currentPixelBuffer else { return }
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
         updateImage(ciImage)
@@ -199,7 +193,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
 
         if isFilterApplied {
-            // Запускаем обнаружение лиц и фильтрацию в отдельном потоке, чтобы не блокировать основной поток
+
             DispatchQueue.global(qos: .userInitiated).async {
                 let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
                 do {
@@ -209,7 +203,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 }
             }
         } else {
-            // Обновляем изображение без применения фильтра
+
             DispatchQueue.main.async {
                 self.imageView.image = UIImage(ciImage: ciImage)
             }
@@ -221,11 +215,10 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         var finalImage: CIImage?
 
         if isFilterApplied {
-            // Применяем фильтр
-            // Это пример. Вам нужно адаптировать логику применения фильтра в соответствии с вашими потребностями.
+           
             filter.inputImage = ciImage
-            filter.inputAmount = 1.0 // Настройте в соответствии с вашим фильтром
-            filter.inputRadius = 10.0 // Настройте в соответствии с вашим фильтром
+            filter.inputAmount = 1.0
+            filter.inputRadius = 10.0 
             finalImage = filter.outputImage
         } else {
             // Не применяем фильтр
