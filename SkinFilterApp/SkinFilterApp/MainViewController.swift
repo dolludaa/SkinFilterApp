@@ -19,7 +19,9 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     private var videoOutput = AVCaptureVideoDataOutput()
     private var videoDeviceInput: AVCaptureDeviceInput!
     private var isCameraOpen = false
-    
+    private var filterButton = UIButton()
+    private var isFilterApplied = false
+
     private var openCameraImage: UIImage?
     private var closeCameraImage: UIImage?
     
@@ -52,18 +54,14 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     private func setupLayout() {
+        // Ensure imageView is initialized before this point
+
         view.addSubview(imageView)
+        imageView.frame = view.bounds // Or any other frame setup
+        imageView.contentMode = .scaleAspectFill
+
         view.addSubview(whiteView)
         whiteView.backgroundColor = .white
-        
-        cameraButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(cameraButton)
-        
-        NSLayoutConstraint.activate([
-            cameraButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            cameraButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20)
-        ])
-        
         whiteView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             whiteView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -71,7 +69,23 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             whiteView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             whiteView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+        
+        view.addSubview(cameraButton)
+           cameraButton.translatesAutoresizingMaskIntoConstraints = false
+           NSLayoutConstraint.activate([
+               cameraButton.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -12.5), // Смещение влево от центра на половину расстояния между кнопками
+               cameraButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+           ])
+           
+           view.addSubview(filterButton)
+           filterButton.translatesAutoresizingMaskIntoConstraints = false
+           filterButton.isHidden = true // Если кнопка должна быть видимой сразу
+           NSLayoutConstraint.activate([
+               filterButton.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 12.5), // Смещение вправо от центра на половину расстояния между кнопками
+               filterButton.bottomAnchor.constraint(equalTo: cameraButton.bottomAnchor)
+           ])
     }
+
 
     private func setUpStyle() {
         imageView.frame = view.bounds
@@ -79,13 +93,18 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         openCameraImage = UIImage(named: "cameraOpen")
         closeCameraImage = UIImage(named: "cameraClose")
-
         
         cameraButton.titleLabel?.font = .systemFont(ofSize: 16)
         cameraButton.setTitleColor(.blue, for: .normal)
         cameraButton.layer.cornerRadius = 15
         cameraButton.setBackgroundImage(openCameraImage, for: .normal)
         cameraButton.addTarget(self, action: #selector(toggleCamera), for: .touchUpInside)
+        
+        filterButton.titleLabel?.font = .systemFont(ofSize: 16)
+        filterButton.setBackgroundImage(UIImage(named: "filterImage"), for: .normal)
+        filterButton.setTitleColor(.blue, for: .normal)
+        filterButton.layer.cornerRadius = 15
+        filterButton.addTarget(self, action: #selector(toggleFilter), for: .touchUpInside)
     }
 
     
@@ -109,12 +128,30 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         captureSession.commitConfiguration()
     }
     
+    @objc private func toggleFilter() {
+        isFilterApplied.toggle() // Переключаем состояние применения фильтра
+
+
+      
+      
+            filterButton.setBackgroundImage(UIImage(named: "filterImage"), for: .normal)
+
+
+        // Обновляем изображение с применением или без применения фильтра
+        // Это условное выполнение требуется, если вы хотите немедленно обновить видимое изображение.
+        // Вам может потребоваться вызвать обновление или перерисовку текущего изображения с фильтром или без него.
+        guard let pixelBuffer = currentPixelBuffer else { return }
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        updateImage(ciImage)
+    }
+
+    
     @objc private func toggleCamera() {
         if isCameraOpen {
             closeCamera()
                    cameraButton.setBackgroundImage(openCameraImage, for: .normal)
                    isCameraOpen = false
-            
+            filterButton.isHidden = true
             whiteView.isHidden = false
         } else {
             if previewLayer == nil {
@@ -142,7 +179,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             cameraButton.setBackgroundImage(closeCameraImage, for: .normal)
 
             isCameraOpen = true
-        
+            filterButton.isHidden = false
             whiteView.isHidden = true
         }
     }
@@ -157,16 +194,51 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
 
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         currentPixelBuffer = pixelBuffer
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
-        do {
-            try handler.perform([faceDetectionRequest])
-        } catch {
-            print("Failed to perform face detection: \(error)")
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+
+        if isFilterApplied {
+            // Запускаем обнаружение лиц и фильтрацию в отдельном потоке, чтобы не блокировать основной поток
+            DispatchQueue.global(qos: .userInitiated).async {
+                let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
+                do {
+                    try handler.perform([self.faceDetectionRequest])
+                } catch {
+                    print("Failed to perform face detection: \(error)")
+                }
+            }
+        } else {
+            // Обновляем изображение без применения фильтра
+            DispatchQueue.main.async {
+                self.imageView.image = UIImage(ciImage: ciImage)
+            }
         }
     }
+
+
+    func updateImage(_ ciImage: CIImage) {
+        var finalImage: CIImage?
+
+        if isFilterApplied {
+            // Применяем фильтр
+            // Это пример. Вам нужно адаптировать логику применения фильтра в соответствии с вашими потребностями.
+            filter.inputImage = ciImage
+            filter.inputAmount = 1.0 // Настройте в соответствии с вашим фильтром
+            filter.inputRadius = 10.0 // Настройте в соответствии с вашим фильтром
+            finalImage = filter.outputImage
+        } else {
+            // Не применяем фильтр
+            finalImage = ciImage
+        }
+
+        if let finalImage = finalImage, let outputCGImage = context.createCGImage(finalImage, from: finalImage.extent) {
+            DispatchQueue.main.async {
+                self.imageView.image = UIImage(cgImage: outputCGImage)
+            }
+        }
+    }
+
     
     func processFaces(for observations: [VNFaceObservation], in ciImage: CIImage) -> CIImage? {
         var resultImage = ciImage
