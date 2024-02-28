@@ -42,7 +42,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         })
     }()
     
-    private let whiteView = UIView() // Добавляем белое вью
+    private let whiteView = UIView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -53,18 +53,17 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     private func setupLayout() {
         view.addSubview(imageView)
-        view.addSubview(whiteView) // Добавляем белое вью
-        whiteView.backgroundColor = .white // Устанавливаем цвет белого вью
+        view.addSubview(whiteView)
+        whiteView.backgroundColor = .white
         
         cameraButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(cameraButton)
         
         NSLayoutConstraint.activate([
             cameraButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            cameraButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20) // Измените констрейнт, чтобы разместить кнопку там, где вам нужно
+            cameraButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20)
         ])
         
-        // Устанавливаем констрейнты для белого вью, чтобы оно занимало весь экран
         whiteView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             whiteView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -78,8 +77,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         imageView.frame = view.bounds
         imageView.contentMode = .scaleAspectFill
         
-        openCameraImage = UIImage(named: "cameraOpen") // Замените на имя вашего изображения
-        closeCameraImage = UIImage(named: "cameraClose") // Замените на имя вашего изображения
+        openCameraImage = UIImage(named: "cameraOpen")
+        closeCameraImage = UIImage(named: "cameraClose")
 
         
         cameraButton.titleLabel?.font = .systemFont(ofSize: 16)
@@ -112,15 +111,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     @objc private func toggleCamera() {
         if isCameraOpen {
-            // Закрываем камеру
             closeCamera()
                    cameraButton.setBackgroundImage(openCameraImage, for: .normal)
                    isCameraOpen = false
             
-            // Показываем белое вью
             whiteView.isHidden = false
         } else {
-            // Открываем камеру, если она ещё не открыта
             if previewLayer == nil {
                 previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
                 previewLayer.frame = view.bounds
@@ -141,14 +137,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 }
             }
             
-            // Перемещаем кнопку на передний план
             view.bringSubviewToFront(cameraButton)
         
-            cameraButton.setBackgroundImage(closeCameraImage, for: .normal) // Устанавливаем изображение для закрытой камеры
+            cameraButton.setBackgroundImage(closeCameraImage, for: .normal)
 
             isCameraOpen = true
-            
-            // Скрываем белое вью
+        
             whiteView.isHidden = true
         }
     }
