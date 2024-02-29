@@ -12,8 +12,8 @@ import YUCIHighPassSkinSmoothing
 import Vision
 
 private struct Constants {
-    static let cameraButtonCornerRadius: CGFloat = 15
-    static let filterButtonCornerRadius: CGFloat = 15
+    static let cameraButtonCornerRadius = 15.0
+    static let filterButtonCornerRadius = 15.0
     static let cameraOpenImageName = "cameraOpen"
     static let cameraCloseImageName = "cameraClose"
     static let filterImageName = "filterImage"
@@ -24,19 +24,20 @@ class ViewController: UIViewController {
     
     private let imageView = UIImageView()
     private let whiteView = UIView()
-    private var cameraButton = UIButton()
-    private var filterButton = UIButton()
-    private var openCameraImage: UIImage?
-    private var closeCameraImage: UIImage?
+    private let cameraButton = UIButton()
+    private let filterButton = UIButton()
+    private let openCameraImage = UIImage(named: Constants.cameraOpenImageName)
+    private let closeCameraImage = UIImage(named: Constants.cameraCloseImageName)
+    private let filterImage = UIImage(named: Constants.filterImageName)
     
-    private var previewLayer: AVCaptureVideoPreviewLayer!
+    private var previewLayer: AVCaptureVideoPreviewLayer?
     private let captureSession = AVCaptureSession()
     private var videoOutput = AVCaptureVideoDataOutput()
-    private var videoDeviceInput: AVCaptureDeviceInput!
+    private var videoDeviceInput: AVCaptureDeviceInput?
     private let filter = YUCIHighPassSkinSmoothing()
-    private let context = CIContext(options: [CIContextOption.workingColorSpace: CGColorSpaceCreateDeviceRGB()])
+    private let context = CIContext(options: [.workingColorSpace: CGColorSpaceCreateDeviceRGB()])
     private var currentPixelBuffer: CVPixelBuffer?
-    private lazy var faceDetectionRequest: VNDetectFaceRectanglesRequest = makeFaceDetectionRequest()
+    private lazy var faceDetectionRequest = makeFaceDetectionRequest()
     
     private var isCameraOpen = false
     private var isFilterApplied = false
@@ -72,33 +73,27 @@ class ViewController: UIViewController {
             filterButton.bottomAnchor.constraint(equalTo: cameraButton.bottomAnchor)
             
         ])
-        
-        filterButton.isHidden = true
-        
     }
     
     private func setUpStyle() {
-        
         whiteView.backgroundColor = .white
         
         imageView.frame = view.bounds
         imageView.contentMode = .scaleAspectFill
         
-        openCameraImage = UIImage(named: Constants.cameraOpenImageName)
-        closeCameraImage = UIImage(named: Constants.cameraCloseImageName)
-        
         cameraButton.layer.cornerRadius = Constants.cameraButtonCornerRadius
         cameraButton.setBackgroundImage(openCameraImage, for: .normal)
         cameraButton.addTarget(self, action: #selector(toggleCamera), for: .touchUpInside)
         
-        filterButton.setBackgroundImage(UIImage(named: Constants.filterImageName), for: .normal)
+        filterButton.isHidden = true
+        filterButton.setBackgroundImage(filterImage, for: .normal)
         filterButton.layer.cornerRadius = Constants.filterButtonCornerRadius
         filterButton.addTarget(self, action: #selector(toggleFilter), for: .touchUpInside)
     }
     
-    
     private func setupCaptureSession() {
         captureSession.beginConfiguration()
+        
         guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
               let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice),
               captureSession.canAddInput(videoDeviceInput) else {
@@ -109,6 +104,7 @@ class ViewController: UIViewController {
         
         videoOutput.videoSettings = [(kCVPixelBufferPixelFormatTypeKey as String): Int(kCVPixelFormatType_32BGRA)]
         videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: Constants.videoQueueLabel))
+        
         guard captureSession.canAddOutput(videoOutput) else {
             fatalError("Cannot add video output to the session")
         }
@@ -127,26 +123,35 @@ class ViewController: UIViewController {
     }
     
     private func makeFaceDetectionRequest() -> VNDetectFaceRectanglesRequest {
-        return VNDetectFaceRectanglesRequest(completionHandler: { [weak self] request, error in
-            guard let self = self, error == nil, let results = request.results as? [VNFaceObservation], !results.isEmpty else { return }
+        VNDetectFaceRectanglesRequest { [weak self] request, error in
+            guard error == nil,
+                  let results = request.results as? [VNFaceObservation],
+                  !results.isEmpty else { return }
+            
             DispatchQueue.main.async {
-                guard let pixelBuffer = self.currentPixelBuffer else { return }
-                let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
-                if let processedImage = self.processFaces(for: results, in: ciImage),
-                   let outputCGImage = self.context.createCGImage(processedImage, from: processedImage.extent) {
-                    self.imageView.image = UIImage(cgImage: outputCGImage)
-                }
+                self?.processFaceDetection(results: results)
             }
-        })
+        }
+    }
+    
+    private func processFaceDetection(results: [VNFaceObservation]) {
+        guard let currentPixelBuffer else { return }
+        let ciImage = CIImage(cvPixelBuffer: currentPixelBuffer)
+        
+        if let processedImage = processFaces(for: results, in: ciImage),
+           let outputCGImage = context.createCGImage(processedImage, from: processedImage.extent) {
+            imageView.image = UIImage(cgImage: outputCGImage)
+        }
     }
     
     private func processFaces(for observations: [VNFaceObservation], in ciImage: CIImage) -> CIImage? {
+        guard let currentPixelBuffer else { return nil }
         var resultImage = ciImage
         
         for observation in observations {
             let faceBounds = VNImageRectForNormalizedRect(observation.boundingBox, Int(ciImage.extent.width), Int(ciImage.extent.height))
             
-            filter.inputImage = CIImage(cvPixelBuffer: currentPixelBuffer!)
+            filter.inputImage = CIImage(cvPixelBuffer: currentPixelBuffer)
             filter.inputAmount = 1.0
             filter.inputRadius = 7.0 * faceBounds.width / 750.0 as NSNumber
             
@@ -161,21 +166,22 @@ class ViewController: UIViewController {
             let centerX = faceBounds.midX
             let center = CIVector(x: centerX, y: centerY)
             
-            let radialGradient = CIFilter(name: "CIRadialGradient", parameters: [
+            guard let radialGradient = CIFilter(name: "CIRadialGradient", parameters: [
                 "inputRadius0": min(ovalWidth, ovalHeight) / 2 as NSNumber,
                 "inputRadius1": max(ovalWidth, ovalHeight) / 2 as NSNumber,
                 "inputColor0": CIColor(red: 1, green: 1, blue: 1, alpha: 1),
                 "inputColor1": CIColor(red: 1, green: 1, blue: 1, alpha: 0),
                 "inputCenter": center
-            ])!.outputImage!
+            ])?.outputImage
+            else { continue }
             
             let blendFilter = CIFilter(name: "CIBlendWithAlphaMask", parameters: [
                 kCIInputBackgroundImageKey: resultImage,
                 kCIInputImageKey: outputFaceImage,
                 kCIInputMaskImageKey: radialGradient
-            ])!
+            ])
             
-            if let blendedImage = blendFilter.outputImage {
+            if let blendedImage = blendFilter?.outputImage {
                 resultImage = blendedImage.cropped(to: ciImage.extent)
             }
         }
@@ -191,41 +197,55 @@ class ViewController: UIViewController {
     
     @objc private func toggleCamera() {
         if isCameraOpen {
-            closeCamera()
-            cameraButton.setBackgroundImage(openCameraImage, for: .normal)
-            isCameraOpen = false
-            filterButton.isHidden = true
-            whiteView.isHidden = false
-            
+            setCameraCloseState()
         } else {
-            if previewLayer == nil {
-                previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-                previewLayer.frame = view.bounds
-                previewLayer.videoGravity = .resizeAspectFill
-                view.layer.insertSublayer(previewLayer, at: 0)
-                previewLayer.connection?.videoOrientation = .portrait
-                
-                if let connection = videoOutput.connection(with: .video), connection.isVideoMirroringSupported {
-                    connection.automaticallyAdjustsVideoMirroring = false
-                    connection.isVideoMirrored = true
-                    connection.videoOrientation = .portrait
-                }
-                
-                if !captureSession.isRunning {
-                    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                        self?.captureSession.startRunning()
-                    }
-                }
-            }
-            
-            view.bringSubviewToFront(cameraButton)
-            
-            cameraButton.setBackgroundImage(closeCameraImage, for: .normal)
-            
-            isCameraOpen = true
-            filterButton.isHidden = false
-            whiteView.isHidden = true
+            setCameraOpenState()
         }
+    }
+    
+    private func setCameraOpenState() {
+        createPreviewLayerIfNeeded()
+        
+        view.bringSubviewToFront(cameraButton)
+        
+        cameraButton.setBackgroundImage(closeCameraImage, for: .normal)
+        
+        isCameraOpen = true
+        filterButton.isHidden = false
+        whiteView.isHidden = true
+    }
+    
+    private func createPreviewLayerIfNeeded() {
+        guard previewLayer == nil else { return }
+        previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+        
+        if let previewLayer {
+            previewLayer.frame = view.bounds
+            previewLayer.videoGravity = .resizeAspectFill
+            view.layer.insertSublayer(previewLayer, at: 0)
+            previewLayer.connection?.videoOrientation = .portrait
+        }
+        
+        if let connection = videoOutput.connection(with: .video), connection.isVideoMirroringSupported {
+            connection.automaticallyAdjustsVideoMirroring = false
+            connection.isVideoMirrored = true
+            connection.videoOrientation = .portrait
+        }
+        
+        if !captureSession.isRunning {
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                self?.captureSession.startRunning()
+            }
+        }
+    }
+    
+    private func setCameraCloseState() {
+        closeCamera()
+        cameraButton.setBackgroundImage(openCameraImage, for: .normal)
+        isCameraOpen = false
+        filterButton.isHidden = true
+        whiteView.isHidden = false
+        imageView.image = nil
     }
 }
 
@@ -238,10 +258,11 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         
         if isFilterApplied {
             
-            DispatchQueue.global(qos: .userInitiated).async {
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                guard let self else { return }
                 let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
                 do {
-                    try handler.perform([self.faceDetectionRequest])
+                    try handler.perform([faceDetectionRequest])
                 } catch {
                     print("Failed to perform face detection: \(error)")
                 }
