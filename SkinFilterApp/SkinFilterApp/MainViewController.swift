@@ -5,10 +5,8 @@
 //  Created by Людмила Долонтаева on 2024-02-13.
 //
 
-import UIKit
 import AVFoundation
-import MetalPetal
-import YUCIHighPassSkinSmoothing
+import UIKit
 import Vision
 
 private struct Constants {
@@ -22,6 +20,11 @@ private struct Constants {
 
 class ViewController: UIViewController {
     
+    private let captureSession = AVCaptureSession()
+    private lazy var previewLayer = AVCaptureVideoPreviewLayer(session: self.captureSession)
+    private let videoDataOutput = AVCaptureVideoDataOutput()
+    private var faceLayers: [CAShapeLayer] = []
+    
     private let imageView = UIImageView()
     private let whiteView = UIView()
     private let cameraButton = UIButton()
@@ -29,24 +32,22 @@ class ViewController: UIViewController {
     private let openCameraImage = UIImage(named: Constants.cameraOpenImageName)
     private let closeCameraImage = UIImage(named: Constants.cameraCloseImageName)
     private let filterImage = UIImage(named: Constants.filterImageName)
-    
-    private var previewLayer: AVCaptureVideoPreviewLayer?
-    private let captureSession = AVCaptureSession()
-    private var videoOutput = AVCaptureVideoDataOutput()
-    private var videoDeviceInput: AVCaptureDeviceInput?
-    private let filter = YUCIHighPassSkinSmoothing()
-    private let context = CIContext(options: [.workingColorSpace: CGColorSpaceCreateDeviceRGB()])
-    private var currentPixelBuffer: CVPixelBuffer?
-    private lazy var faceDetectionRequest = makeFaceDetectionRequest()
-    
+    private var faceObservations: [VNFaceObservation] = []
+
     private var isCameraOpen = false
     private var isFilterApplied = false
     
     override func viewDidLoad() {
-        super.viewDidLoad()
-        setupLayout()
-        setUpStyle()
-        setupCaptureSession()
+            super.viewDidLoad()
+            setupLayout()
+            setUpStyle()
+            setupCaptureSession()
+        }
+
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        self.previewLayer.frame = self.view.frame
     }
     
     private func setupLayout() {
@@ -92,101 +93,106 @@ class ViewController: UIViewController {
     }
     
     private func setupCaptureSession() {
-        captureSession.beginConfiguration()
-        
-        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
-              let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice),
-              captureSession.canAddInput(videoDeviceInput) else {
-            fatalError("Cannot add video device input to the session")
+            captureSession.beginConfiguration()
+    
+            guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
+                  let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice),
+                  captureSession.canAddInput(videoDeviceInput) else {
+                fatalError("Cannot add video device input to the session")
+            }
+    
+            captureSession.addInput(videoDeviceInput)
+    
+        videoDataOutput.videoSettings = [(kCVPixelBufferPixelFormatTypeKey as String): Int(kCVPixelFormatType_32BGRA)]
+        videoDataOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: Constants.videoQueueLabel))
+    
+            guard captureSession.canAddOutput(videoDataOutput) else {
+                fatalError("Cannot add video output to the session")
+            }
+    
+            captureSession.addOutput(videoDataOutput)
+            captureSession.commitConfiguration()
         }
-        
-        captureSession.addInput(videoDeviceInput)
-        
-        videoOutput.videoSettings = [(kCVPixelBufferPixelFormatTypeKey as String): Int(kCVPixelFormatType_32BGRA)]
-        videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: Constants.videoQueueLabel))
-        
-        guard captureSession.canAddOutput(videoOutput) else {
-            fatalError("Cannot add video output to the session")
-        }
-        
-        captureSession.addOutput(videoOutput)
-        captureSession.commitConfiguration()
+    
+    private func setCameraOpenState() {
+        createPreviewLayerIfNeeded()
+
+        view.bringSubviewToFront(cameraButton)
+
+        cameraButton.setBackgroundImage(closeCameraImage, for: .normal)
+
+        isCameraOpen = true
+        filterButton.isHidden = false
+        whiteView.isHidden = true
     }
     
-    private func closeCamera() {
+    private func setCameraCloseState() {
+        stopCamera()
+        cameraButton.setBackgroundImage(openCameraImage, for: .normal)
+        isCameraOpen = false
+        filterButton.isHidden = true
+        whiteView.isHidden = false
+        imageView.image = nil
+    }
+    
+    private func stopCamera() {
         if captureSession.isRunning {
-            captureSession.stopRunning()
-        }
-        
-        previewLayer?.removeFromSuperlayer()
-        previewLayer = nil
-    }
-    
-    private func makeFaceDetectionRequest() -> VNDetectFaceRectanglesRequest {
-        VNDetectFaceRectanglesRequest { [weak self] request, error in
-            guard error == nil,
-                  let results = request.results as? [VNFaceObservation],
-                  !results.isEmpty else { return }
-            
-            DispatchQueue.main.async {
-                self?.processFaceDetection(results: results)
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                self?.captureSession.stopRunning()
             }
         }
     }
     
-    private func processFaceDetection(results: [VNFaceObservation]) {
-        guard let currentPixelBuffer else { return }
-        let ciImage = CIImage(cvPixelBuffer: currentPixelBuffer)
-        
-        if let processedImage = processFaces(for: results, in: ciImage),
-           let outputCGImage = context.createCGImage(processedImage, from: processedImage.extent) {
-            imageView.image = UIImage(cgImage: outputCGImage)
+    private func createPreviewLayerIfNeeded() {
+        if previewLayer.superlayer == nil {
+            previewLayer.frame = view.bounds
+            previewLayer.videoGravity = .resizeAspectFill
+            view.layer.insertSublayer(previewLayer, at: 0)
         }
+
+        previewLayer.connection?.videoOrientation = .portrait
+
+        if let connection = videoDataOutput.connection(with: .video), connection.isVideoMirroringSupported {
+            connection.automaticallyAdjustsVideoMirroring = false
+            connection.isVideoMirrored = true
+            connection.videoOrientation = .portrait
+        }
+
+        startCamera()
     }
     
-    private func processFaces(for observations: [VNFaceObservation], in ciImage: CIImage) -> CIImage? {
-        guard let currentPixelBuffer else { return nil }
-        var resultImage = ciImage
+    private func applyMaskToImageView() {
+        let maskLayer = combineMasks(masks: faceLayers)
+        guard let maskImage = layerToImage(layer: maskLayer) else {
+            return
+        }
+
+        let maskLayerForImage = CALayer()
+        maskLayerForImage.contents = maskImage
+        maskLayerForImage.frame = imageView.bounds
+        imageView.layer.mask = maskLayerForImage
+    }
+
+    private func layerToImage(layer: CAShapeLayer) -> CGImage? {
+        let size = imageView.bounds.size
+        UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.main.scale)
+        guard let context = UIGraphicsGetCurrentContext() else { return nil }
         
-        for observation in observations {
-            let faceBounds = VNImageRectForNormalizedRect(observation.boundingBox, Int(ciImage.extent.width), Int(ciImage.extent.height))
-            
-            filter.inputImage = CIImage(cvPixelBuffer: currentPixelBuffer)
-            filter.inputAmount = 1.0
-            filter.inputRadius = 7.0 * faceBounds.width / 750.0 as NSNumber
-            
-            guard let outputFaceImage = filter.outputImage else { continue }
-            
-            let width = faceBounds.width
-            let height = faceBounds.height
-            let ovalWidth = width * 1.2
-            let ovalHeight = height * 1.4
-            
-            let centerY = faceBounds.midY + height * 0.1
-            let centerX = faceBounds.midX
-            let center = CIVector(x: centerX, y: centerY)
-            
-            guard let radialGradient = CIFilter(name: "CIRadialGradient", parameters: [
-                "inputRadius0": min(ovalWidth, ovalHeight) / 2 as NSNumber,
-                "inputRadius1": max(ovalWidth, ovalHeight) / 2 as NSNumber,
-                "inputColor0": CIColor(red: 1, green: 1, blue: 1, alpha: 1),
-                "inputColor1": CIColor(red: 1, green: 1, blue: 1, alpha: 0),
-                "inputCenter": center
-            ])?.outputImage
-            else { continue }
-            
-            let blendFilter = CIFilter(name: "CIBlendWithAlphaMask", parameters: [
-                kCIInputBackgroundImageKey: resultImage,
-                kCIInputImageKey: outputFaceImage,
-                kCIInputMaskImageKey: radialGradient
-            ])
-            
-            if let blendedImage = blendFilter?.outputImage {
-                resultImage = blendedImage.cropped(to: ciImage.extent)
+        layer.bounds = imageView.bounds
+        layer.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        layer.render(in: context)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return image?.cgImage
+    }
+
+    private func startCamera() {
+        if !captureSession.isRunning {
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                self?.captureSession.startRunning()
             }
         }
-        
-        return resultImage
     }
     
     @objc private func toggleFilter() {
@@ -202,96 +208,111 @@ class ViewController: UIViewController {
             setCameraOpenState()
         }
     }
-    
-    private func setCameraOpenState() {
-        createPreviewLayerIfNeeded()
-        
-        view.bringSubviewToFront(cameraButton)
-        
-        cameraButton.setBackgroundImage(closeCameraImage, for: .normal)
-        
-        isCameraOpen = true
-        filterButton.isHidden = false
-        whiteView.isHidden = true
-    }
-    
-    private func createPreviewLayerIfNeeded() {
-        guard previewLayer == nil else { return }
-        previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        
-        if let previewLayer {
-            previewLayer.frame = view.bounds
-            previewLayer.videoGravity = .resizeAspectFill
-            view.layer.insertSublayer(previewLayer, at: 0)
-            previewLayer.connection?.videoOrientation = .portrait
-        }
-        
-        if let connection = videoOutput.connection(with: .video), connection.isVideoMirroringSupported {
-            connection.automaticallyAdjustsVideoMirroring = false
-            connection.isVideoMirrored = true
-            connection.videoOrientation = .portrait
-        }
-        
-        if !captureSession.isRunning {
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                self?.captureSession.startRunning()
-            }
-        }
-    }
-    
-    private func setCameraCloseState() {
-        closeCamera()
-        cameraButton.setBackgroundImage(openCameraImage, for: .normal)
-        isCameraOpen = false
-        filterButton.isHidden = true
-        whiteView.isHidden = false
-        imageView.image = nil
-    }
 }
 
 extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        currentPixelBuffer = pixelBuffer
-        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
         
-        if isFilterApplied {
-            
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                guard let self else { return }
-                let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
-                do {
-                    try handler.perform([faceDetectionRequest])
-                } catch {
-                    print("Failed to perform face detection: \(error)")
+        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+            return
+        }
+        
+        let faceDetectionRequest = VNDetectFaceLandmarksRequest(completionHandler: { (request: VNRequest, error: Error?) in
+            DispatchQueue.main.async {
+                self.faceLayers.forEach({ drawing in drawing.removeFromSuperlayer() })
+                
+                if let observations = request.results as? [VNFaceObservation] {
+                    self.handleFaceDetectionObservations(observations: observations)
                 }
             }
-        } else {
-            
-            DispatchQueue.main.async {
-                self.imageView.image = UIImage(ciImage: ciImage)
-            }
+        })
+        
+        let imageRequestHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .leftMirrored, options: [:])
+        
+        do {
+            try imageRequestHandler.perform([faceDetectionRequest])
+        } catch {
+            print(error.localizedDescription)
         }
     }
     
-    func updateImage(_ ciImage: CIImage) {
-        var finalImage: CIImage?
-        
-        if isFilterApplied {
+    private func handleFaceDetectionObservations(observations: [VNFaceObservation]) {
+        faceLayers = []
+        for observation in observations {
+            let faceRectConverted = self.previewLayer.layerRectConverted(fromMetadataOutputRect: observation.boundingBox)
+            let faceRectanglePath = CGPath(rect: faceRectConverted, transform: nil)
             
-            filter.inputImage = ciImage
-            filter.inputAmount = 1.0
-            filter.inputRadius = 10.0
-            finalImage = filter.outputImage
-        } else {
-            finalImage = ciImage
+            let faceLayer = CAShapeLayer()
+            faceLayer.path = faceRectanglePath
+            faceLayer.fillColor = UIColor.clear.cgColor
+            faceLayer.strokeColor = UIColor.yellow.cgColor
+            
+            self.faceLayers.append(faceLayer)
+            //            self.view.layer.addSublayer(faceLayer)
+            
+            //FACE LANDMARKS
+            if let landmarks = observation.landmarks {
+                if let leftEye = landmarks.leftEye {
+                    self.handleLandmark(leftEye, faceBoundingBox: faceRectConverted)
+                }
+                
+                if let rightEye = landmarks.rightEye {
+                    self.handleLandmark(rightEye, faceBoundingBox: faceRectConverted)
+                }
+                
+                if let outerLips = landmarks.outerLips {
+                    self.handleLandmark(outerLips, faceBoundingBox: faceRectConverted)
+                }
+                if let innerLips = landmarks.innerLips {
+                    self.handleLandmark(innerLips, faceBoundingBox: faceRectConverted)
+                }
+                if let outerLips = landmarks.outerLips {
+                    self.handleLandmark(outerLips, faceBoundingBox: faceRectConverted)
+                }
+            }
+            
+            
         }
         
-        if let finalImage = finalImage, let outputCGImage = context.createCGImage(finalImage, from: finalImage.extent) {
-            DispatchQueue.main.async {
-                self.imageView.image = UIImage(cgImage: outputCGImage)
-            }
-        }
+        view.layer.mask = nil
+
+                imageView.layer.mask = combineMasks(masks: faceLayers)
+    }
+    
+    private func handleLandmark(_ eye: VNFaceLandmarkRegion2D, faceBoundingBox: CGRect) {
+        let landmarkPath = CGMutablePath()
+        let landmarkPathPoints = eye.normalizedPoints
+            .map({ eyePoint in
+                CGPoint(
+                    x: eyePoint.y * faceBoundingBox.height + faceBoundingBox.origin.x,
+                    y: eyePoint.x * faceBoundingBox.width + faceBoundingBox.origin.y)
+            })
+        landmarkPath.addLines(between: landmarkPathPoints)
+        landmarkPath.closeSubpath()
+        let landmarkLayer = CAShapeLayer()
+        landmarkLayer.path = landmarkPath
+        landmarkLayer.fillColor = UIColor.green.cgColor
+        landmarkLayer.strokeColor = UIColor.green.cgColor
+        
+        self.faceLayers.append(landmarkLayer)
+        //        self.view.layer.addSublayer(landmarkLayer)
     }
 }
+
+func combineMasks(masks: [CAShapeLayer]) -> CAShapeLayer {
+    let combinedPath = CGMutablePath()
+    
+    for mask in masks {
+        if let path = mask.path {
+            combinedPath.addPath(path)
+        }
+    }
+    
+    let combinedMaskLayer = CAShapeLayer()
+    combinedMaskLayer.path = combinedPath
+    combinedMaskLayer.fillRule = .evenOdd
+    
+    return combinedMaskLayer
+}
+
